@@ -1,10 +1,13 @@
 package com.example.notepad_api;
 
 import com.example.notepad_api.models.Note;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Service
 public class NoteManager {
     private ArrayList<Note> notes = new ArrayList<>();
 
