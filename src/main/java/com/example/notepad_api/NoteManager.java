@@ -1,62 +1,51 @@
 package com.example.notepad_api;
 
 import com.example.notepad_api.models.Note;
+import com.example.notepad_api.repositories.NoteRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
-public class NoteManager {
-    private ArrayList<Note> notes = new ArrayList<>();
+public class NoteManager{
+    private final NoteRepository noteRepository;
 
-    private Long nextId = 1L;
-
-    public void addNote(Note note){
-        note.setId(nextId);
-        nextId++;
-        notes.add(note);
-
+    public NoteManager(NoteRepository noteRepository){
+        this.noteRepository = noteRepository;
     }
 
-    public List<Note> getAllNotes(){
-        return notes;
+    public Note addNote(Note note){
+        return noteRepository.save(note);
     }
 
-    public boolean updateNote(Long id, String title, String content){
-        if (id <= 0){
-            return false;
+    public List<Note> getAllNotes() {
+        return noteRepository.findAll();
+    }
+
+    public Optional<Note> findNoteById(Long id){
+        return noteRepository.findById(id);
+    }
+
+    public Note updateNote(Long id, String title, String content){
+        Optional<Note> existingNote = noteRepository.findById(id);
+
+        if(existingNote.isEmpty()){
+            return null;
         }
-        Note note = this.findNoteById(id);
-        if (note == null){
-            return false;
-        }
+
+        Note note = existingNote.get();
         note.setTitle(title);
         note.setContent(content);
-        return true;
+
+        return noteRepository.save(note);
     }
 
     public boolean deleteNote(Long id){
-        if (id <= 0 ) {
+        if (!noteRepository.existsById(id)){
             return false;
         }
-        Note note = this.findNoteById(id);
-        if (note == null){
-            return false;
-        }
-        notes.remove(note);
+        noteRepository.deleteById(id);
         return true;
-    }
-
-    public Note findNoteById(Long id){
-        for (int i = 0; i < notes.size(); i++){
-            Note note = notes.get(i);
-
-            if (note.getId().equals(id)){
-                return note;
-            }
-        }
-        return null;
     }
 }

@@ -6,6 +6,7 @@ import com.example.notepad_api.models.Note;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/notes")
@@ -23,7 +24,7 @@ public class NoteController
     }
 
     @GetMapping("{id}")
-    public Note getNoteById(@PathVariable Long id) {
+    public Optional<Note> getNoteById(@PathVariable Long id) {
         return noteManager.findNoteById(id);
     }
 
@@ -34,12 +35,8 @@ public class NoteController
     }
 
     @PutMapping("/{id}")
-    public Note updateNote(@RequestBody Note note, @PathVariable Long id){
-        boolean updated = noteManager.updateNote(id, note.getTitle(), note.getContent());
-        if(!updated){
-            return null;
-        }
-        return noteManager.findNoteById(id);
+    public Note updateNote(@RequestBody Note note, @PathVariable Long id) {
+        return noteManager.updateNote(id, note.getTitle(), note.getContent());
     }
 
     @DeleteMapping("/{id}")
