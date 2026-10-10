@@ -3,8 +3,12 @@ package com.example.notepad_api.controllers;
 
 import com.example.notepad_api.NoteManager;
 import com.example.notepad_api.models.Note;
+import org.springframework.expression.spel.ast.OpInc;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,29 +23,43 @@ public class NoteController
     }
 
     @GetMapping
-    public List<Note> getAllNotes(){
-        return noteManager.getAllNotes();
+    public ResponseEntity<List<Note>> getAllNotes(){
+        return ResponseEntity.ok(noteManager.getAllNotes());
     }
 
     @GetMapping("{id}")
-    public Optional<Note> getNoteById(@PathVariable Long id) {
-        return noteManager.findNoteById(id);
+    public ResponseEntity<Note> getNoteById(@PathVariable Long id){
+        Optional<Note> note = noteManager.findNoteById(id);
+
+        return note.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Note createNote(@RequestBody Note note) {
-        noteManager.addNote(note);
-        return note;
+    public ResponseEntity<Note> createNote(@RequestBody Note note){
+        Note savedNote = noteManager.addNote(note);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 
     @PutMapping("/{id}")
-    public Note updateNote(@RequestBody Note note, @PathVariable Long id) {
-        return noteManager.updateNote(id, note.getTitle(), note.getContent());
+    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note note){
+        Note updatedNote = noteManager.updateNote(id, note.getTitle(), note.getContent());
+        if (updatedNote == null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updatedNote);
     }
 
+
     @DeleteMapping("/{id}")
-    public boolean deleteNote(@PathVariable Long id) {
-        return noteManager.deleteNote(id);
+    public ResponseEntity<Void> deleteNote(@PathVariable Long id){
+        boolean deleted = noteManager.deleteNote(id);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
 }
