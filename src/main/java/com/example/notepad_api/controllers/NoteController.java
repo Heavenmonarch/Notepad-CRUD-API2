@@ -3,6 +3,7 @@ package com.example.notepad_api.controllers;
 
 import com.example.notepad_api.NoteManager;
 import com.example.notepad_api.models.Note;
+import jakarta.validation.Valid;
 import org.springframework.expression.spel.ast.OpInc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +37,13 @@ public class NoteController
     }
 
     @PostMapping
-    public ResponseEntity<Note> createNote(@RequestBody Note note){
+    public ResponseEntity<Note> createNote(@Valid @RequestBody Note note){
         Note savedNote = noteManager.addNote(note);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note note){
+    public ResponseEntity<Note> updateNote(@PathVariable Long id, @Valid @RequestBody Note note){
         Note updatedNote = noteManager.updateNote(id, note.getTitle(), note.getContent());
         if (updatedNote == null){
             return ResponseEntity.notFound().build();
