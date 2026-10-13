@@ -12,13 +12,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException exception){
+    public ResponseEntity<ApiErrorResponse> handleValidationErrors(MethodArgumentNotValidException exception){
         Map<String, String> errors = new HashMap<>();
 
         exception.getBindingResult()
                 .getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST).body(errors);
-
+        ApiErrorResponse response = new ApiErrorResponse("Validation failed", HttpStatus.BAD_REQUEST.value(), errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
