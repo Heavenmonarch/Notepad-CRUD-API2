@@ -2,14 +2,13 @@ package com.example.notepad_api.controllers;
 
 
 import com.example.notepad_api.NoteManager;
+import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
 import jakarta.validation.Valid;
-import org.springframework.expression.spel.ast.OpInc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,11 +28,14 @@ public class NoteController
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Note> getNoteById(@PathVariable Long id){
+    public ResponseEntity<?> getNoteById(@PathVariable Long id){
         Optional<Note> note = noteManager.findNoteById(id);
 
-        return note.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        if (note.isPresent()){
+            return ResponseEntity.ok(note.get());
+        }
+        ApiErrorResponse error = new ApiErrorResponse("Note with ID " + id + " was not found", HttpStatus.NOT_FOUND.value(), null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @PostMapping
