@@ -1,4 +1,4 @@
-package com.example.notepad_api;
+package com.example.notepad_api.services;
 
 import com.example.notepad_api.models.Note;
 import com.example.notepad_api.repositories.NoteRepository;
@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class NoteManager{
+public class NoteService {
     private final NoteRepository noteRepository;
 
-    public NoteManager(NoteRepository noteRepository){
+    public NoteService(NoteRepository noteRepository){
         this.noteRepository = noteRepository;
     }
 

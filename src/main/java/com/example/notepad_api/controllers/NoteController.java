@@ -1,7 +1,8 @@
 package com.example.notepad_api.controllers;
 
 
-import com.example.notepad_api.NoteManager;
+import com.example.notepad_api.dto.CreateNoteRequest;
+import com.example.notepad_api.services.NoteService;
 import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
 import jakarta.validation.Valid;
@@ -16,20 +17,20 @@ import java.util.Optional;
 @RequestMapping("/api/notes")
 public class NoteController
 {
-    private final NoteManager noteManager;
+    private final NoteService noteService;
 
-    public NoteController(NoteManager noteManager) {
-        this.noteManager = noteManager;
+    public NoteController(NoteService noteService) {
+        this.noteService = noteService;
     }
 
     @GetMapping
     public ResponseEntity<List<Note>> getAllNotes(){
-        return ResponseEntity.ok(noteManager.getAllNotes());
+        return ResponseEntity.ok(noteService.getAllNotes());
     }
 
     @GetMapping("{id}")
     public ResponseEntity<?> getNoteById(@PathVariable Long id){
-        Optional<Note> note = noteManager.findNoteById(id);
+        Optional<Note> note = noteService.findNoteById(id);
 
         if (note.isPresent()){
             return ResponseEntity.ok(note.get());
@@ -39,14 +40,15 @@ public class NoteController
     }
 
     @PostMapping
-    public ResponseEntity<Note> createNote(@Valid @RequestBody Note note){
-        Note savedNote = noteManager.addNote(note);
+    public ResponseEntity<Note> createNote(@Valid @RequestBody CreateNoteRequest request){
+        Note note = new Note(request.getTitle(), request.getContent());
+        Note savedNote = noteService.addNote(note);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable Long id, @Valid @RequestBody Note note){
-        Note updatedNote = noteManager.updateNote(id, note.getTitle(), note.getContent());
+    public ResponseEntity<Note> updateNote(@PathVariable Long id, @Valid @RequestBody CreateNoteRequest request){
+        Note updatedNote = noteService.updateNote(id, request.getTitle(), request.getContent());
         if (updatedNote == null){
             return ResponseEntity.notFound().build();
         }
@@ -56,7 +58,7 @@ public class NoteController
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id){
-        boolean deleted = noteManager.deleteNote(id);
+        boolean deleted = noteService.deleteNote(id);
 
         if (!deleted) {
             return ResponseEntity.notFound().build();
