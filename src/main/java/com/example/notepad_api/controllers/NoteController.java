@@ -2,6 +2,7 @@ package com.example.notepad_api.controllers;
 
 
 import com.example.notepad_api.dto.CreateNoteRequest;
+import com.example.notepad_api.dto.NoteResponse;
 import com.example.notepad_api.services.NoteService;
 import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
@@ -24,8 +25,9 @@ public class NoteController
     }
 
     @GetMapping
-    public ResponseEntity<List<Note>> getAllNotes(){
-        return ResponseEntity.ok(noteService.getAllNotes());
+    public ResponseEntity<List<NoteResponse>> getAllNotes(){
+        List<NoteResponse> responses = noteService.getAllNotes().stream().map(NoteResponse::fromNote).toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("{id}")
@@ -33,17 +35,19 @@ public class NoteController
         Optional<Note> note = noteService.findNoteById(id);
 
         if (note.isPresent()){
-            return ResponseEntity.ok(note.get());
+            NoteResponse response = NoteResponse.fromNote(note.get());
+            return ResponseEntity.ok(response);
         }
         ApiErrorResponse error = new ApiErrorResponse("Note with ID " + id + " was not found", HttpStatus.NOT_FOUND.value(), null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @PostMapping
-    public ResponseEntity<Note> createNote(@Valid @RequestBody CreateNoteRequest request){
+    public ResponseEntity<NoteResponse> createNote(@Valid @RequestBody CreateNoteRequest request){
         Note note = new Note(request.getTitle(), request.getContent());
         Note savedNote = noteService.addNote(note);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
+        NoteResponse response = NoteResponse.fromNote(savedNote);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
