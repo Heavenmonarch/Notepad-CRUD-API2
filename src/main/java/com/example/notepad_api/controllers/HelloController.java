@@ -15,5 +15,10 @@ public class HelloController {
     public String about(){
         return "Omo mehn, them dey give me class activity keh";
     }
+
+    @GetMapping("/test-error")
+    public String testError(){
+        throw new RuntimeException("This is a test exception");
+    }
 }
 
