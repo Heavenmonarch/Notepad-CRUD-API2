@@ -3,12 +3,15 @@ package com.example.notepad_api.controllers;
 
 import com.example.notepad_api.dto.CreateNoteRequest;
 import com.example.notepad_api.dto.NoteResponse;
+import com.example.notepad_api.dto.PatchNoteRequest;
 import com.example.notepad_api.dto.UpdateNoteRequest;
 import com.example.notepad_api.mappers.NoteMapper;
 import com.example.notepad_api.services.NoteService;
 import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +30,13 @@ public class NoteController
     }
 
     @GetMapping
-    public ResponseEntity<List<NoteResponse>> getAllNotes(){
-        List<NoteResponse> responses = noteService.getAllNotes().stream().map(NoteMapper::toResponse).toList();
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<Page<NoteResponse>> getAllNotes(
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                noteService.getAllNotes(pageable)
+                        .map(NoteMapper::toResponse)
+        );
     }
 
     @GetMapping("{id}")
@@ -73,6 +80,68 @@ public class NoteController
    }
 
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> patchNote(
+            @PathVariable Long id,
+            @Valid @RequestBody PatchNoteRequest request
+    ) {
+
+        if (request.getTitle() == null && request.getContent() == null) {
+            ApiErrorResponse error = new ApiErrorResponse(
+                    "At least one field must be provided",
+                    HttpStatus.BAD_REQUEST.value(),
+                    null
+            );
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(error);
+        }
+
+        if (request.getTitle() != null && request.getTitle().isBlank()) {
+            ApiErrorResponse error = new ApiErrorResponse(
+                    "Title cannot be blank",
+                    HttpStatus.BAD_REQUEST.value(),
+                    null
+            );
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(error);
+        }
+
+        if (request.getContent() != null && request.getContent().isBlank()) {
+            ApiErrorResponse error = new ApiErrorResponse(
+                    "Content cannot be blank",
+                    HttpStatus.BAD_REQUEST.value(),
+                    null
+            );
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(error);
+        }
+
+        Note updatedNote = noteService.patchNote(
+                id,
+                request.getTitle(),
+                request.getContent()
+        );
+
+        if (updatedNote == null) {
+            ApiErrorResponse error = new ApiErrorResponse(
+                    "Note with ID " + id + " was not found",
+                    HttpStatus.NOT_FOUND.value(),
+                    null
+            );
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(error);
+        }
+
+        return ResponseEntity.ok(NoteMapper.toResponse(updatedNote));
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id){
         boolean deleted = noteService.deleteNote(id);

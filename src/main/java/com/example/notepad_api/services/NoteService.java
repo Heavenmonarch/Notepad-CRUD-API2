@@ -2,6 +2,8 @@ package com.example.notepad_api.services;
 
 import com.example.notepad_api.models.Note;
 import com.example.notepad_api.repositories.NoteRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +25,10 @@ public class NoteService {
         return noteRepository.findAll();
     }
 
+    public Page<Note> getAllNotes(Pageable pageable){
+        return noteRepository.findAll(pageable);
+    }
+
     public Optional<Note> findNoteById(Long id){
         return noteRepository.findById(id);
     }
@@ -37,6 +43,26 @@ public class NoteService {
         Note note = existingNote.get();
         note.setTitle(title);
         note.setContent(content);
+
+        return noteRepository.save(note);
+    }
+
+    public Note patchNote(Long id, String title, String content){
+        Optional<Note> existingNote = noteRepository.findById(id);
+
+        if (existingNote.isEmpty()){
+            return null;
+        }
+
+        Note note = existingNote.get();
+
+        if (title != null){
+            note.setTitle(title);
+        }
+
+        if (content != null){
+            note.setContent(content);
+        }
 
         return noteRepository.save(note);
     }
