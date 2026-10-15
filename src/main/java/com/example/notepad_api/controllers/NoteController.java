@@ -3,6 +3,8 @@ package com.example.notepad_api.controllers;
 
 import com.example.notepad_api.dto.CreateNoteRequest;
 import com.example.notepad_api.dto.NoteResponse;
+import com.example.notepad_api.dto.UpdateNoteRequest;
+import com.example.notepad_api.mappers.NoteMapper;
 import com.example.notepad_api.services.NoteService;
 import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
@@ -26,7 +28,7 @@ public class NoteController
 
     @GetMapping
     public ResponseEntity<List<NoteResponse>> getAllNotes(){
-        List<NoteResponse> responses = noteService.getAllNotes().stream().map(NoteResponse::fromNote).toList();
+        List<NoteResponse> responses = noteService.getAllNotes().stream().map(NoteMapper::toResponse).toList();
         return ResponseEntity.ok(responses);
     }
 
@@ -35,7 +37,7 @@ public class NoteController
         Optional<Note> note = noteService.findNoteById(id);
 
         if (note.isPresent()){
-            NoteResponse response = NoteResponse.fromNote(note.get());
+            NoteResponse response = NoteMapper.toResponse(note.get());
             return ResponseEntity.ok(response);
         }
         ApiErrorResponse error = new ApiErrorResponse("Note with ID " + id + " was not found", HttpStatus.NOT_FOUND.value(), null);
@@ -46,18 +48,29 @@ public class NoteController
     public ResponseEntity<NoteResponse> createNote(@Valid @RequestBody CreateNoteRequest request){
         Note note = new Note(request.getTitle(), request.getContent());
         Note savedNote = noteService.addNote(note);
-        NoteResponse response = NoteResponse.fromNote(savedNote);
+        NoteResponse response = NoteMapper.toResponse(savedNote);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable Long id, @Valid @RequestBody CreateNoteRequest request){
+   @PutMapping("/{id}")
+   public ResponseEntity<?> updateNote(@PathVariable Long id, @Valid @RequestBody UpdateNoteRequest request){
         Note updatedNote = noteService.updateNote(id, request.getTitle(), request.getContent());
-        if (updatedNote == null){
-            return ResponseEntity.notFound().build();
+        if (updatedNote == null) {
+           ApiErrorResponse error = new ApiErrorResponse(
+                   "Note with ID " + id + " was not found",
+                   HttpStatus.NOT_FOUND.value(),
+                   null
+           );
+
+           return ResponseEntity
+                   .status(HttpStatus.NOT_FOUND)
+                   .body(error);
         }
-        return ResponseEntity.ok(updatedNote);
-    }
+
+       NoteResponse response = NoteMapper.toResponse(updatedNote);
+
+       return ResponseEntity.ok(response);
+   }
 
 
     @DeleteMapping("/{id}")

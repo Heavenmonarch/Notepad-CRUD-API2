@@ -1,7 +1,7 @@
 package com.example.notepad_api.dto;
 
 
-import com.example.notepad_api.models.Note;
+//import com.example.notepad_api.models.Note;
 
 public class NoteResponse {
     private Long id;
@@ -14,9 +14,9 @@ public class NoteResponse {
         this.content = content;
     }
 
-    public static NoteResponse fromNote(Note note){
-        return new NoteResponse(note.getId(), note.getTitle(), note.getContent());
-    }
+//    public static NoteResponse fromNote(Note note){
+//        return new NoteResponse(note.getId(), note.getTitle(), note.getContent());
+//    }
 
     public Long getId() {
         return id;
