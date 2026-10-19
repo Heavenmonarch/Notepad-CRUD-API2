@@ -2,6 +2,7 @@ package com.example.notepad_api.services;
 
 import com.example.notepad_api.models.Note;
 import com.example.notepad_api.repositories.NoteRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class NoteService {
         return noteRepository.findById(id);
     }
 
+    @Transactional
     public Note updateNote(Long id, String title, String content){
         Optional<Note> existingNote = noteRepository.findById(id);
 
@@ -47,6 +49,7 @@ public class NoteService {
         return noteRepository.save(note);
     }
 
+    @Transactional
     public Note patchNote(Long id, String title, String content){
         Optional<Note> existingNote = noteRepository.findById(id);
 
