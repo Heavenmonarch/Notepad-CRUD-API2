@@ -106,4 +106,33 @@ class NoteControllerIntegrationTest {
         mockMvc.perform(get("/api/notes/" + noteId))
                 .andExpect(status().isNotFound());
     }
+
+
+    @Test
+    void getNonexistentNoteReturnsNotFound() throws Exception {
+
+        mockMvc.perform(get("/api/notes/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteNonexistentNoteReturnsNotFound() throws Exception {
+
+        mockMvc.perform(delete("/api/notes/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void patchWithEmptyBodyReturnsBadRequest() throws Exception {
+
+        String requestBody = "{}";
+
+        mockMvc.perform(
+                        patch("/api/notes/999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
 }
