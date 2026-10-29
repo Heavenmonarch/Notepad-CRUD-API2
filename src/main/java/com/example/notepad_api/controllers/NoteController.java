@@ -9,6 +9,11 @@ import com.example.notepad_api.mappers.NoteMapper;
 import com.example.notepad_api.services.NoteService;
 import com.example.notepad_api.exceptions.ApiErrorResponse;
 import com.example.notepad_api.models.Note;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +24,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+
+@Tag(
+        name = "Notes",
+        description = "Operations for creating, retrieving, updating and deleting notes"
+)
 @RestController
 @RequestMapping("/api/notes")
 public class NoteController
@@ -28,7 +38,13 @@ public class NoteController
     public NoteController(NoteService noteService) {
         this.noteService = noteService;
     }
-
+    @Operation(
+            summary = "Get all notes",
+            description = "Get all the notes that have been created"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "notes retrieved successfully")
+    })
     @GetMapping
     public ResponseEntity<Page<NoteResponse>> getAllNotes(
             Pageable pageable
@@ -39,6 +55,21 @@ public class NoteController
         );
     }
 
+    @Operation(
+            summary = "Get one note",
+            description = "Retrieve one note using the id of the note"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "note retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No note exists with that ID"
+            )
+    })
+    @Parameter(description = "unique ID of the note", example = "1", required = true)
     @GetMapping("{id}")
     public ResponseEntity<?> getNoteById(@PathVariable Long id){
         Optional<Note> note = noteService.findNoteById(id);
@@ -51,6 +82,14 @@ public class NoteController
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @Operation(
+            summary = "Create a note",
+            description = "Creates a new note and returns the saved note"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Note created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data")
+    })
     @PostMapping
     public ResponseEntity<NoteResponse> createNote(@Valid @RequestBody CreateNoteRequest request){
         Note note = new Note(request.getTitle(), request.getContent());
@@ -59,6 +98,15 @@ public class NoteController
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+   @Operation(
+           summary = "Replace a note",
+           description = "updates the title and content of na existing note"
+   )
+   @ApiResponses({
+           @ApiResponse(responseCode = "200", description = "Note updated successfully"),
+           @ApiResponse(responseCode = "400", description = "Invalid data request"),
+           @ApiResponse(responseCode = "404", description = "Note not found")
+   })
    @PutMapping("/{id}")
    public ResponseEntity<?> updateNote(@PathVariable Long id, @Valid @RequestBody UpdateNoteRequest request){
         Note updatedNote = noteService.updateNote(id, request.getTitle(), request.getContent());
@@ -79,7 +127,16 @@ public class NoteController
        return ResponseEntity.ok(response);
    }
 
-
+   @Operation(
+           summary = "Partially update a note",
+           description = "Updates only the supplied fields of an existing note"
+   )
+   @ApiResponses({
+           @ApiResponse(responseCode = "200", description = "Note updated successfully"),
+           @ApiResponse(responseCode = "400", description = "Empty or invalid patch request"),
+           @ApiResponse(responseCode = "404", description = "Note not found")
+   }
+   )
     @PatchMapping("/{id}")
     public ResponseEntity<?> patchNote(
             @PathVariable Long id,
@@ -142,6 +199,14 @@ public class NoteController
 
         return ResponseEntity.ok(NoteMapper.toResponse(updatedNote));
     }
+    @Operation(
+            summary = "Delete a note",
+            description = "Permanently deletes a note identified by its ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Note deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Note not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id){
         boolean deleted = noteService.deleteNote(id);
